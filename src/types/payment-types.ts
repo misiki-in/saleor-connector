@@ -4,6 +4,7 @@
 
 export type PaymentMethod = {
   id: string // Unique identifier for the payment method
+  code: string
   name: string // Name of the payment method (must be unique)
   type: string // Type of payment method (e.g., credit card, PayPal)
   active: boolean // Indicates if the payment method is active
