@@ -1,227 +1,247 @@
 import type { PaginatedResponse, Order } from './../types'
-
 import { BaseService } from './base.service'
+
+const ORDER_FRAGMENT = `
+  fragment OrderDetails on Order {
+    id
+    number
+    created
+    updatedAt
+    status
+    userEmail
+    isPaid
+    paymentStatus
+    user {
+      id
+    }
+    shippingAddress {
+      firstName
+      lastName
+      streetAddress1
+      city
+      postalCode
+      country {
+        code
+      }
+    }
+    billingAddress {
+      firstName
+      lastName
+      streetAddress1
+      city
+      postalCode
+      country {
+        code
+      }
+    }
+    total {
+      gross {
+        amount
+        currency
+      }
+    }
+    subtotal {
+      gross {
+        amount
+      }
+    }
+    shippingPrice {
+      gross {
+        amount
+      }
+    }
+    totalGrantedRefund {
+      amount
+    }
+    totalRefunded {
+      amount
+    }
+  }
+`;
+
+const ORDERS_LIST = `
+  ${ORDER_FRAGMENT}
+  query OrdersList($first: Int!) {
+    me {
+      orders(first: $first) {
+        edges {
+          node {
+            ...OrderDetails
+          }
+        }
+        totalCount
+      }
+    }
+  }
+`;
+
+const ORDER_BY_ID = `
+  ${ORDER_FRAGMENT}
+  query OrderById($id: ID!) {
+    order(id: $id) {
+      ...OrderDetails
+    }
+  }
+`;
+
+const mapSaleorOrderToLitekart = (saleorOrder: any): Order => {
+  return {
+    id: saleorOrder.id,
+    orderNo: saleorOrder.number,
+    storeId: null,
+    batchNo: null,
+    amount: null,
+    parentOrderNo: null,
+    vendorId: "",
+    isEmailSentToVendor: false,
+    status: saleorOrder.status,
+    cartId: "",
+    userId: saleorOrder.user?.id || null,
+    userPhone: null,
+    userFirstName: saleorOrder.billingAddress?.firstName || null,
+    userLastName: saleorOrder.billingAddress?.lastName || null,
+    userEmail: saleorOrder.userEmail,
+    comment: null,
+    needAddress: false,
+    selfTakeout: false,
+    shippingCharges: saleorOrder.shippingPrice?.gross?.amount || 0,
+    total: saleorOrder.total?.gross?.amount || 0,
+    subtotal: saleorOrder.subtotal?.gross?.amount || 0,
+    discount: null,
+    tax: null,
+    currencySymbol: saleorOrder.total?.gross?.currency || null,
+    currencyCode: saleorOrder.total?.gross?.currency || null,
+    codCharges: null,
+    codPaid: null,
+    paid: saleorOrder.isPaid,
+    paySuccess: saleorOrder.isPaid ? 1 : 0,
+    amountRefunded: saleorOrder.totalRefunded?.amount || 0,
+    amountDue: null,
+    amountPaid: saleorOrder.isPaid ? saleorOrder.total?.gross?.amount : 0,
+    totalDiscount: null,
+    totalAmountRefunded: saleorOrder.totalRefunded?.amount || 0,
+    paymentMethod: null,
+    platform: "saleor",
+    couponUsed: null,
+    coupon: null,
+    paymentStatus: saleorOrder.paymentStatus,
+    paymentCurrency: saleorOrder.total?.gross?.currency || null,
+    paymentMsg: null,
+    paymentReferenceId: null,
+    paymentGateway: null,
+    paymentId: null,
+    paymentAmount: saleorOrder.isPaid ? saleorOrder.total?.gross?.amount : 0,
+    paymentMode: null,
+    paymentDate: null,
+    shippingAddressId: null,
+    billingAddressId: null,
+    shippingAddress: saleorOrder.shippingAddress || null,
+    billingAddress: saleorOrder.billingAddress || null,
+    createdAt: saleorOrder.created,
+    updatedAt: saleorOrder.updatedAt
+  } as Order;
+};
 
 /**
  * OrderService provides functionality for working with specific resources
  * in the Litekart API.
- *
- * This service helps with:
- * - Main functionality point 1
- * - Main functionality point 2
- * - Main functionality point 3
  */
 export class OrderService extends BaseService {
   private static instance: OrderService
 
-  /**
-   * Get the singleton instance
-   */
-  /**
- * Get the singleton instance
- * 
- * @returns {OrderService} The singleton instance of OrderService
- */
   static getInstance(): OrderService {
     if (!OrderService.instance) {
       OrderService.instance = new OrderService()
     }
     return OrderService.instance
   }
-  /**
- * Fetches Order from the API
- * 
- * @param {Object} options - The request options
- * @param {number} [options.page=1] - The page number for pagination
- * @param {string} [options.q=''] - Search query string
- * @param {string} [options.sort='-createdAt'] - Sort order
- * @returns {Promise<any>} The requested data
- * @api {get} /api/order Get order
- * 
- * @example
- * // Example usage
- * const result = await orderService.list({ page: 1 });
- */
+
   async list({ page = 1, q = '', sort = '-createdAt' }) {
-    return this.get(`/api/orders?page=${page}&q=${q}&sort=${sort}`) as Promise<
-      PaginatedResponse<Order>
-    >
+    const res = await this.query<any>(ORDERS_LIST, { first: 50 });
+    const orders = res?.me?.orders?.edges?.map((e: any) => mapSaleorOrderToLitekart(e.node)) || [];
+    return {
+      data: orders,
+      count: res?.me?.orders?.totalCount || orders.length,
+      page: 1,
+      pageSize: 50,
+      totalPages: 1,
+      noOfPage: 1
+    } as unknown as PaginatedResponse<Order>;
   }
 
-  /**
- * Fetches Order from the API
- * 
- * @param {Object} options - The request options
- * @param {number} [options.page=1] - The page number for pagination
- * @param {string} [options.q=''] - Search query string
- * @param {string} [options.sort='-createdAt'] - Sort order
- * @returns {Promise<any>} The requested data
- * @api {get} /api/order Get order
- * 
- * @example
- * // Example usage
- * const result = await orderService.listOrdersByParent({ page: 1 });
- */
+  async listOrdersByParent({ orderNo, cartId }: { orderNo: string | null; cartId: string | null }) {
+    const res = await this.query<any>(ORDERS_LIST, { first: 50 });
+    let orders = res?.me?.orders?.edges?.map((e: any) => mapSaleorOrderToLitekart(e.node)) || [];
 
-  async listOrdersByParent({
-    orderNo,
-    cartId
-  }: {
-    orderNo: string | null
-    cartId: string | null
-  }) {
-    return this.get(
-      `/api/orders/list-by-parent?order_no=${orderNo}&cart_id=${cartId}`
-    ) as Promise<PaginatedResponse<Order>>
+    if (orderNo) {
+      orders = orders.filter((o: Order) => o.id === orderNo || String(o.orderNo) === orderNo);
+    }
+
+    return {
+      data: orders,
+      count: orders.length,
+      page: 1,
+      pageSize: 50,
+      totalPages: 1,
+      noOfPage: 1
+    } as unknown as PaginatedResponse<Order>;
   }
-
-  /**
- * Fetches a single Order by ID
- * 
- * @param {string} id - The ID of the order to fetch
- * @returns {Promise<any>} The requested order
- * @api {get} /api/orders/:id Get order by ID
- * 
- * @example
- * // Example usage
- * const order = await orderService.fetchOrder('123');
- */
 
   async fetchOrder(id: string) {
-    return this.get(`/api/orders/${id}`) as Promise<Order>
+    const res = await this.query<any>(ORDER_BY_ID, { id });
+    if (!res?.order) throw new Error("Order not found");
+    return mapSaleorOrderToLitekart(res.order);
   }
-
-  /**
- * Fetches a single Order by ID
- * 
- * @param {string} id - The ID of the order to fetch
- * @returns {Promise<any>} The requested order
- * @api {get} /api/orders/:id Get order by ID
- * 
- * @example
- * // Example usage
- * const order = await orderService.getOrder('123');
- */
 
   async getOrder(orderNo: string) {
-    return this.get(`/api/orders/${orderNo}`) as Promise<Order>
+    const res = await this.query<any>(ORDER_BY_ID, { id: orderNo });
+    if (!res?.order) throw new Error("Order not found");
+    return mapSaleorOrderToLitekart(res.order);
   }
 
-  /**
- * Fetches a single Order by ID
- * 
- * @param {string} id - The ID of the order to fetch
- * @returns {Promise<any>} The requested order
- * @api {get} /api/orders/:id Get order by ID
- * 
- * @example
- * // Example usage
- * const order = await orderService.fetchTrackOrder('123');
- */
-
   async fetchTrackOrder(id: string) {
-    return this.get(`/api/orders/list-by-parent?id=${id}`) as Promise<
-      PaginatedResponse<Order>
-    >
+    throw new Error("Not implemented for Saleor");
   }
 
   async paySuccessPageHit(orderId: string) {
-    return this.get(`/api/orders/${orderId}`) as Promise<Order>
+    throw new Error("Not implemented for Saleor");
   }
 
-  async codCheckout({
-    address,
-    cartId,
-    origin,
-    paymentMethod,
-    paymentProviderId,
-    prescription
-  }: any) {
-    return this.post<Order>(`/api/carts/${cartId}/payment-sessions`, {
-      provider_id: paymentProviderId
-    })
+  async codCheckout(params: any) {
+    throw new Error("Not implemented for Saleor");
   }
 
-  async cashfreeCheckout({
-    address,
-    paymentMethod,
-    prescription,
-    origin
-  }: any) {
-    return this.get('/api/orders/me') as Promise<Order>
+  async cashfreeCheckout(params: any) {
+    throw new Error("Not implemented for Saleor");
   }
 
-  async razorpayCheckout({
-    address,
-    paymentMethod,
-    prescription,
-    origin
-  }: any) {
-    return this.get('/api/orders/me') as Promise<Order>
+  async razorpayCheckout(params: any) {
+    throw new Error("Not implemented for Saleor");
   }
 
-  async stripeCheckout({ address, paymentMethod, prescription, origin }: any) {
-    return this.get('/api/orders/me') as Promise<Order>
+  async stripeCheckout(params: any) {
+    throw new Error("Not implemented for Saleor");
   }
 
-  async razorCapture({ rpPaymentId, rpOrderId, origin }: any) {
-    return this.get('/api/orders/me') as Promise<Order>
+  async razorCapture(params: any) {
+    throw new Error("Not implemented for Saleor");
   }
-
-  /**
- * Fetches Order from the API
- * 
- * @param {Object} options - The request options
- * @param {number} [options.page=1] - The page number for pagination
- * @param {string} [options.q=''] - Search query string
- * @param {string} [options.sort='-createdAt'] - Sort order
- * @returns {Promise<any>} The requested data
- * @api {get} /api/order Get order
- * 
- * @example
- * // Example usage
- * const result = await orderService.listPublic({ page: 1 });
- */
 
   async listPublic() {
-    return this.get('/api/orders/public/list') as Promise<
-      PaginatedResponse<Order>
-    >
+    throw new Error("Not implemented for Saleor");
   }
 
-  /**
- * Fetches a single Order by ID
- * 
- * @param {string} id - The ID of the order to fetch
- * @returns {Promise<any>} The requested order
- * @api {get} /api/orders/:id Get order by ID
- * 
- * @example
- * // Example usage
- * const order = await orderService.getOrderByEmailAndOTP('123');
- */
-
-  async getOrderByEmailAndOTP({ email, otp }: { email: string; otp: string }) {
-    return this.get(
-      `/api/orders-public/list?otp=${otp}&email=${email}&sort=-createdAt`
-    ) as Promise<PaginatedResponse<Order>>
+  async getOrderByEmailAndOTP(params: any) {
+    throw new Error("Not implemented for Saleor");
   }
 
   async buyAgain() {
-    return this.get('/api/orders/buy-again') as Promise<
-      PaginatedResponse<Order>
-    >
+    throw new Error("Not implemented for Saleor");
   }
 
-  async submitReview({ rating, review, productId, variantId, uploadedImages }: any) {
-		return this.post<any>(`/api/products/ratings-and-reviews`, {
-			rating,
-			review,
-			productId,
-			variantId,
-			uploadedImages
-		})
-	}
+  async submitReview(params: any) {
+    throw new Error("Not implemented for Saleor");
+  }
 }
 
 // Use singleton instance
