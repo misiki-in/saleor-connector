@@ -13,7 +13,11 @@ import { GraphQLClient, Variables } from 'graphql-request'
 export class BaseService {
   private _fetch: typeof fetch
   private _graphQLClient: GraphQLClient
+  private static SALEOR_API_URL: string
 
+  static setCredentials(API_URL: string) {
+    BaseService.SALEOR_API_URL = API_URL
+  }
   /**
    * Creates a new BaseService instance
    *
@@ -25,9 +29,8 @@ export class BaseService {
 
     
     const url = 
-      (typeof process !== 'undefined' && process.env && process.env.SALEOR_API_URL) || 
-      (typeof window !== 'undefined' && (window as any).SALEOR_API_URL) || 
-      'https://store-45n964rn.saleor.cloud/graphql/';
+      (typeof process !== 'undefined' && process.env && process.env.PUBLIC_SALEOR_API_URL) || 
+      (typeof window !== 'undefined' && (window as any).PUBLIC_SALEOR_API_URL) || BaseService.SALEOR_API_URL
 
     console.log("Env provided", url)
 
@@ -223,8 +226,32 @@ export class BaseService {
    * @throws {Error} Throws an error if the request fails
    */
   async query<T>(queryStr: string, variables?: Variables): Promise<T> {
+    const url = 
+      (typeof process !== 'undefined' && process.env && process.env.PUBLIC_SALEOR_API_URL) || 
+      (typeof window !== 'undefined' && (window as any).PUBLIC_SALEOR_API_URL) || BaseService.SALEOR_API_URL
+
+    console.log("Env provided", url)
+
+    const client = new GraphQLClient(url, {
+      fetch: this._fetch,
+      requestMiddleware: (request) => {
+        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('saleor_token') : null;
+        if (token) {
+          if (typeof Headers !== 'undefined' && request.headers instanceof Headers) {
+            request.headers.set('authorization', `Bearer ${token}`);
+          } else {
+            request.headers = {
+              ...request.headers as any,
+              authorization: `Bearer ${token}`
+            };
+          }
+        }
+        return request;
+      }
+    });
+
     try {
-      return await this._graphQLClient.request<T>(queryStr, variables)
+      return await client.request<T>(queryStr, variables)
     } catch(e: any) {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         throw { message: 'Please check your internet connection and try again' }
