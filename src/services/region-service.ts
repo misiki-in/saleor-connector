@@ -1,9 +1,18 @@
 import { BaseService } from './base.service'
-import { EP } from '../endpoints'
 
+/**
+ * RegionService — Saleor connector. Methods mirror @misiki/litekart-connector's RegionService.
+ * Present-but-dummy for capabilities Saleor does not expose (returns dummy data,
+ * never throws) so kitcommerce-core never hits `undefined is not a function`.
+ */
 export class RegionService extends BaseService {
-  getRegionByRegionId(id: string | number) {
-    if (!EP.countries) return this.unsupported('region.getRegionByRegionId')
-    return this.get(`${EP.countries}/${id}`)
+  private static instance: RegionService
+  static getInstance(): RegionService {
+    if (!RegionService.instance) RegionService.instance = new RegionService()
+    return RegionService.instance
   }
+
+  async getRegionByRegionId(..._args: any[]): Promise<any> { return this.dummy({}) }
 }
+
+export const regionService = RegionService.getInstance()

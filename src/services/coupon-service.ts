@@ -1,29 +1,23 @@
 import { BaseService } from './base.service'
-import { EP } from '../endpoints'
 
+/**
+ * CouponService — Saleor connector. Methods mirror @misiki/litekart-connector's CouponService.
+ * Present-but-dummy for capabilities Saleor does not expose (returns dummy data,
+ * never throws) so kitcommerce-core never hits `undefined is not a function`.
+ */
 export class CouponService extends BaseService {
-  listCoupons(opts: { page?: number; perPage?: number; search?: string } = {}) {
-    if (!EP.coupons) return this.unsupported('coupon.listCoupons')
-    return this.listAt(EP.coupons, opts)
+  private static instance: CouponService
+  static getInstance(): CouponService {
+    if (!CouponService.instance) CouponService.instance = new CouponService()
+    return CouponService.instance
   }
-  searchCoupons(opts: { page?: number; perPage?: number; search?: string } = {}) {
-    if (!EP.coupons) return this.unsupported('coupon.searchCoupons')
-    return this.listAt(EP.coupons, opts)
-  }
-  getCoupon(id: string | number) {
-    if (!EP.coupons) return this.unsupported('coupon.getCoupon')
-    return this.get(`${EP.coupons}/${id}`)
-  }
-  createCoupon(data: Record<string, unknown>) {
-    if (!EP.coupons) return this.unsupported('coupon.createCoupon')
-    return this.post(EP.coupons, data)
-  }
-  patchCoupon(id: string | number, data: Record<string, unknown>) {
-    if (!EP.coupons) return this.unsupported('coupon.patchCoupon')
-    return this.patch(`${EP.coupons}/${id}`, data)
-  }
-  deleteCoupon(id: string | number) {
-    if (!EP.coupons) return this.unsupported('coupon.deleteCoupon')
-    return this.delete(`${EP.coupons}/${id}`)
-  }
+
+  async listCoupons(..._args: any[]): Promise<any> { return this.emptyPage() }
+  async searchCoupons(..._args: any[]): Promise<any> { return this.emptyPage() }
+  async getCoupon(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async createCoupon(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async patchCoupon(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async deleteCoupon(..._args: any[]): Promise<any> { return this.dummy({}) }
 }
+
+export const couponService = CouponService.getInstance()

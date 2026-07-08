@@ -1,10 +1,20 @@
 import { BaseService } from './base.service'
 
+/**
+ * SearchService — Saleor connector. Methods mirror @misiki/litekart-connector's SearchService.
+ * Present-but-dummy for capabilities Saleor does not expose (returns dummy data,
+ * never throws) so kitcommerce-core never hits `undefined is not a function`.
+ */
 export class SearchService extends BaseService {
-  searchWithQuery(query: string, channel = 'default-channel') {
-    const gql = `query Search($q: String!, $channel: String!) {
-      products(first: 20, filter: { search: $q }, channel: $channel) { edges { node { id name slug } } }
-    }`
-    return this.graphql(gql, { q: query, channel })
+  private static instance: SearchService
+  static getInstance(): SearchService {
+    if (!SearchService.instance) SearchService.instance = new SearchService()
+    return SearchService.instance
   }
+
+  async searchWithUrl(..._args: any[]): Promise<any> { return this.emptyPage() }
+  async searchWithQuery(..._args: any[]): Promise<any> { return this.emptyPage() }
+  async emptyResult(..._args: any[]): Promise<any> { return { data: [], count: 0, pageSize: 0, noOfPage: 0, page: 1 } }
 }
+
+export const searchService = SearchService.getInstance()

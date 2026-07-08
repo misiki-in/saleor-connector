@@ -1,9 +1,18 @@
 import { BaseService } from './base.service'
-import { EP } from '../endpoints'
 
+/**
+ * PaymentMethodService — Saleor connector. Methods mirror @misiki/litekart-connector's PaymentMethodService.
+ * Present-but-dummy for capabilities Saleor does not expose (returns dummy data,
+ * never throws) so kitcommerce-core never hits `undefined is not a function`.
+ */
 export class PaymentMethodService extends BaseService {
-  list(opts: { page?: number; perPage?: number; search?: string } = {}) {
-    if (!EP.paymentMethods) return this.unsupported('paymentMethod.list')
-    return this.listAt(EP.paymentMethods, opts)
+  private static instance: PaymentMethodService
+  static getInstance(): PaymentMethodService {
+    if (!PaymentMethodService.instance) PaymentMethodService.instance = new PaymentMethodService()
+    return PaymentMethodService.instance
   }
+
+  async list(..._args: any[]): Promise<any> { return this.emptyPage() }
 }
+
+export const paymentMethodService = PaymentMethodService.getInstance()

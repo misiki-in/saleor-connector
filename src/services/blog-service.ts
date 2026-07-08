@@ -1,13 +1,19 @@
 import { BaseService } from './base.service'
-import { EP } from '../endpoints'
 
+/**
+ * BlogService — Saleor connector. Methods mirror @misiki/litekart-connector's BlogService.
+ * Present-but-dummy for capabilities Saleor does not expose (returns dummy data,
+ * never throws) so kitcommerce-core never hits `undefined is not a function`.
+ */
 export class BlogService extends BaseService {
-  list(opts: { page?: number; perPage?: number; search?: string } = {}) {
-    if (!EP.blog) return this.unsupported('blog.list')
-    return this.listAt(EP.blog, opts)
+  private static instance: BlogService
+  static getInstance(): BlogService {
+    if (!BlogService.instance) BlogService.instance = new BlogService()
+    return BlogService.instance
   }
-  getOne(id: string | number) {
-    if (!EP.blog) return this.unsupported('blog.getOne')
-    return this.get(`${EP.blog}/${id}`)
-  }
+
+  async list(..._args: any[]): Promise<any> { return this.emptyPage() }
+  async getOne(..._args: any[]): Promise<any> { return this.dummy({}) }
 }
+
+export const blogService = BlogService.getInstance()

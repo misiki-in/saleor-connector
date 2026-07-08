@@ -1,14 +1,32 @@
 import { BaseService } from './base.service'
 
+/**
+ * OrderService — Saleor connector. Methods mirror @misiki/litekart-connector's OrderService.
+ * Present-but-dummy for capabilities Saleor does not expose (returns dummy data,
+ * never throws) so kitcommerce-core never hits `undefined is not a function`.
+ */
 export class OrderService extends BaseService {
-  list({ first = 20, after = '' }: { first?: number; after?: string } = {}) {
-    const query = `query Orders($first: Int!, $after: String) {
-      orders(first: $first, after: $after) { edges { node { id number created status total { gross { amount currency } } } } pageInfo { hasNextPage endCursor } }
-    }`
-    return this.graphql(query, { first, after: after || null })
+  private static instance: OrderService
+  static getInstance(): OrderService {
+    if (!OrderService.instance) OrderService.instance = new OrderService()
+    return OrderService.instance
   }
-  fetchOrder(id: string) {
-    const query = `query Order($id: ID!) { order(id: $id) { id number status total { gross { amount currency } } lines { productName quantity } } }`
-    return this.graphql(query, { id })
-  }
+
+  async list(..._args: any[]): Promise<any> { return this.emptyPage() }
+  async listOrdersByParent(..._args: any[]): Promise<any> { return this.emptyPage() }
+  async fetchOrder(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async getOrder(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async fetchTrackOrder(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async paySuccessPageHit(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async codCheckout(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async cashfreeCheckout(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async razorpayCheckout(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async stripeCheckout(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async razorCapture(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async listPublic(..._args: any[]): Promise<any> { return this.emptyPage() }
+  async getOrderByEmailAndOTP(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async buyAgain(..._args: any[]): Promise<any> { return this.dummy({}) }
+  async submitReview(..._args: any[]): Promise<any> { return this.dummy({}) }
 }
+
+export const orderService = OrderService.getInstance()

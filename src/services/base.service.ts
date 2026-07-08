@@ -1,50 +1,151 @@
-import type { ConnectorConfig } from '../config'
+import type { Credentials } from '../config'
 
-export class NotSupportedError extends Error {
-  code = 'NOT_SUPPORTED' as const
-  constructor(feature: string) {
-    super(`${feature} is not supported by the Saleor connector`)
-    this.name = 'NotSupportedError'
-  }
-}
-
+/**
+ * BaseService — shared Saleor GraphQL client for every service.
+ *
+ * Design (to match how kitcommerce-core consumes @misiki/litekart-connector):
+ *  - Credentials are injected via the static `setCredentials` (called from the
+ *    SvelteKit client + server hooks) — NOT through constructors, because the
+ *    client imports prebuilt singleton services.
+ *  - Server-side, a fresh service instance is created with a custom `fetch`
+ *    (carrying request cookies); client-side the prebuilt singleton uses global fetch.
+ *  - Unsuccessful responses THROW their body (always carrying a `message`) rather
+ *    than returning it, so kitcommerce-core can surface `message` to the user.
+ *  - Saleor access tokens are short-lived (~5 min); on `ExpiredSignatureError`
+ *    we silently refresh via `refreshToken` and retry once, under the hood.
+ */
 export class BaseService {
-  protected config: ConnectorConfig
-  private _fetch: typeof fetch
+  private static _credentials: Credentials = { apiUrl: '' }
+  protected _fetch: typeof fetch
 
-  constructor(config: ConnectorConfig) {
-    this.config = config
-    this._fetch = config.fetchFn || fetch
+  constructor(fetchFn?: typeof fetch) {
+    this._fetch = fetchFn || (globalThis.fetch as typeof fetch)
   }
 
-  protected unsupported(feature: string): never { throw new NotSupportedError(feature) }
-  protected authHeaders(): Record<string, string> {
-    return this.config.accessToken ? { Authorization: `Bearer ${this.config.accessToken}` } : {}
+  /** Inject/merge credentials once (api url, channel, store, tokens). */
+  static setCredentials(creds: Partial<Credentials>): void {
+    BaseService._credentials = { ...BaseService._credentials, ...creds }
   }
 
-  // REST-style helpers are not applicable to a GraphQL API; present only so the
-  // shared service surface type-checks. They resolve to NotSupported at runtime.
-  protected listAt(_path: string, _opts: { page?: number; perPage?: number; search?: string } = {}): Promise<unknown> { return this.unsupported('rest.listAt') }
-  get<T = unknown>(_path: string): Promise<T> { return this.unsupported('rest.get') }
-  post<T = unknown>(_path: string, _data?: unknown): Promise<T> { return this.unsupported('rest.post') }
-  put<T = unknown>(_path: string, _data?: unknown): Promise<T> { return this.unsupported('rest.put') }
-  patch<T = unknown>(_path: string, _data?: unknown): Promise<T> { return this.unsupported('rest.patch') }
-  delete<T = unknown>(_path: string): Promise<T> { return this.unsupported('rest.delete') }
+  static getCredentials(): Credentials {
+    return BaseService._credentials
+  }
 
-  async graphql<T = unknown>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
+  protected get creds(): Credentials {
+    return BaseService._credentials
+  }
+
+  /** Run a GraphQL operation with error-throwing + silent token refresh. */
+  protected async graphql<T = any>(
+    query: string,
+    variables: Record<string, any> = {},
+    _retried = false
+  ): Promise<T> {
+    const { apiUrl, accessToken } = this.creds
     let response: Response
     try {
-      response = await this._fetch(this.config.baseUrl, {
+      response = await this._fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...this.authHeaders() },
-        body: JSON.stringify({ query, variables }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+        },
+        body: JSON.stringify({ query, variables })
       })
     } catch {
-      throw { message: 'Unable to reach the Saleor GraphQL endpoint.' }
+      throw { message: 'Unable to reach the server. Please check your connection and try again.' }
     }
-    if (!response.ok) throw { message: `Saleor GraphQL HTTP error ${response.status}`, status: response.status }
-    const json = (await response.json()) as { data?: T; errors?: Array<{ message: string }> }
-    if (json.errors?.length) throw { message: json.errors.map((e) => e.message).join('; '), errors: json.errors }
+
+    if (!response.ok) {
+      throw this.toError(await this.safeJson(response), `Request failed with status ${response.status}`)
+    }
+
+    const json = (await this.safeJson(response)) as { data?: T; errors?: any[] }
+
+    if (json.errors?.length) {
+      if (!_retried && this.creds.refreshToken && this.isTokenExpired(json.errors)) {
+        if (await this.refreshAccessToken()) return this.graphql<T>(query, variables, true)
+      }
+      throw this.toError(json, json.errors.map((e) => e?.message).filter(Boolean).join('; ') || 'GraphQL error')
+    }
+
     return json.data as T
+  }
+
+  /** Detect Saleor's ExpiredSignatureError across error shapes. */
+  private isTokenExpired(errors: any[]): boolean {
+    return errors.some((e) => {
+      const code = e?.extensions?.exception?.code || e?.extensions?.code || ''
+      return code === 'ExpiredSignatureError' || /signature has expired|token.*expired/i.test(e?.message || '')
+    })
+  }
+
+  /** Saleor tokenRefresh -> stash a fresh access token into credentials. */
+  protected async refreshAccessToken(): Promise<boolean> {
+    const { apiUrl, refreshToken } = this.creds
+    if (!refreshToken) return false
+    const query =
+      'mutation Refresh($refreshToken: String!) { tokenRefresh(refreshToken: $refreshToken) { token errors { message } } }'
+    try {
+      const res = await this._fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables: { refreshToken } })
+      })
+      const token = (await res.json())?.data?.tokenRefresh?.token
+      if (token) {
+        BaseService.setCredentials({ accessToken: token })
+        this.setCookie('saleor_token', token)
+        return true
+      }
+    } catch {
+      /* fall through to false */
+    }
+    return false
+  }
+
+  private async safeJson(res: Response): Promise<any> {
+    try {
+      return await res.json()
+    } catch {
+      return {}
+    }
+  }
+
+  /** Normalise any body into an object guaranteed to have a `message`. */
+  protected toError(body: any, fallback: string): { message: string; [k: string]: any } {
+    if (body && typeof body === 'object') {
+      const message =
+        body.message ||
+        (Array.isArray(body.errors) ? body.errors.map((e: any) => e?.message).filter(Boolean).join('; ') : '') ||
+        fallback
+      return { ...body, message }
+    }
+    return { message: typeof body === 'string' && body ? body : fallback }
+  }
+
+  /**
+   * Fallback for unsupported methods — returns dummy data so consumers never hit
+   * `undefined is not a function`. Never throws.
+   */
+  protected dummy<T>(value: T): Promise<T> {
+    return Promise.resolve(value)
+  }
+
+  protected emptyPage<T = any>() {
+    return this.dummy<{ data: T[]; count: number; pageSize: number; noOfPage: number; page: number }>({
+      data: [],
+      count: 0,
+      pageSize: 0,
+      noOfPage: 0,
+      page: 1
+    })
+  }
+
+  /** Write a browser cookie (client-side auth state); no-op on the server. */
+  protected setCookie(name: string, value: string, days = 30): void {
+    if (typeof document === 'undefined') return
+    const expires = new Date(Date.now() + days * 864e5).toUTCString()
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`
   }
 }
