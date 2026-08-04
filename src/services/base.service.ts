@@ -12,7 +12,6 @@ import { GraphQLClient, Variables } from 'graphql-request'
  */
 export class BaseService {
   private _fetch: typeof fetch
-  private _graphQLClient: GraphQLClient
   private static SALEOR_API_URL: string
 
   static setCredentials(API_URL: string) {
@@ -26,31 +25,6 @@ export class BaseService {
   constructor(fetchFn?: typeof fetch) {
     // Use provided fetch or global fetch as fallback
     this._fetch = fetchFn || fetch
-
-    
-    const url = 
-      (typeof process !== 'undefined' && process.env && process.env.PUBLIC_SALEOR_API_URL) || 
-      (typeof window !== 'undefined' && (window as any).PUBLIC_SALEOR_API_URL) || BaseService.SALEOR_API_URL
-
-    console.log("Env provided", url)
-
-    this._graphQLClient = new GraphQLClient(url, {
-      fetch: this._fetch,
-      requestMiddleware: (request) => {
-        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('saleor_token') : null;
-        if (token) {
-          if (typeof Headers !== 'undefined' && request.headers instanceof Headers) {
-            request.headers.set('authorization', `Bearer ${token}`);
-          } else {
-            request.headers = {
-              ...request.headers as any,
-              authorization: `Bearer ${token}`
-            };
-          }
-        }
-        return request;
-      }
-    });
 
     console.log("a service was created")
   }
@@ -73,6 +47,31 @@ export class BaseService {
    */
   getFetch(): typeof fetch {
     return this._fetch
+  }
+
+  /**
+   * Get a new GraphQL client instance
+   *
+   * @returns {GraphQLClient} A new GraphQLClient instance
+   */
+  getClient(): GraphQLClient {
+    return new GraphQLClient(BaseService.SALEOR_API_URL, {
+      fetch: this._fetch,
+      requestMiddleware: (request) => {
+        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('saleor_token') : null;
+        if (token) {
+          if (typeof Headers !== 'undefined' && request.headers instanceof Headers) {
+            request.headers.set('authorization', `Bearer ${token}`);
+          } else {
+            request.headers = {
+              ...request.headers as any,
+              authorization: `Bearer ${token}`
+            };
+          }
+        }
+        return request;
+      }
+    });
   }
 
   private async safeFetch(url: URL | string, data?: any) {
@@ -226,29 +225,7 @@ export class BaseService {
    * @throws {Error} Throws an error if the request fails
    */
   async query<T>(queryStr: string, variables?: Variables): Promise<T> {
-    const url = 
-      (typeof process !== 'undefined' && process.env && process.env.PUBLIC_SALEOR_API_URL) || 
-      (typeof window !== 'undefined' && (window as any).PUBLIC_SALEOR_API_URL) || BaseService.SALEOR_API_URL
-
-    console.log("Env provided", url)
-
-    const client = new GraphQLClient(url, {
-      fetch: this._fetch,
-      requestMiddleware: (request) => {
-        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('saleor_token') : null;
-        if (token) {
-          if (typeof Headers !== 'undefined' && request.headers instanceof Headers) {
-            request.headers.set('authorization', `Bearer ${token}`);
-          } else {
-            request.headers = {
-              ...request.headers as any,
-              authorization: `Bearer ${token}`
-            };
-          }
-        }
-        return request;
-      }
-    });
+    const client = this.getClient();
 
     try {
       return await client.request<T>(queryStr, variables)
@@ -273,7 +250,7 @@ export class BaseService {
                 }
               }
             `;
-            const refreshRes = await this._graphQLClient.request<any>(TOKEN_REFRESH_MUTATION, { refreshToken });
+            const refreshRes = await this.getClient().request<any>(TOKEN_REFRESH_MUTATION, { refreshToken });
             const newToken = refreshRes?.tokenRefresh?.token;
             
             if (newToken) {
@@ -284,7 +261,7 @@ export class BaseService {
                 document.cookie = `connect.sid=${newToken}; path=/; max-age=86400`;
               }
               // Retry original request (middleware will grab the new token)
-              return await this._graphQLClient.request<T>(queryStr, variables);
+              return await this.getClient().request<T>(queryStr, variables);
             }
           } catch (refreshErr) {
             // refresh token is likely invalid or expired
