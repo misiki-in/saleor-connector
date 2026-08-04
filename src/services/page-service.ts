@@ -1,7 +1,5 @@
 import type { Page, PaginatedResponse } from './../types'
 
-import { BaseService } from './base.service'
-
 /**
  * PageService provides functionality for working with specific resources
  * in the Litekart API.
@@ -11,78 +9,92 @@ import { BaseService } from './base.service'
  * - Main functionality point 2
  * - Main functionality point 3
  */
-export class PageService extends BaseService {
+export class PageService {
   private static instance: PageService
+
+  private dummyPages: Page[] = [
+    {
+      id: '1',
+      name: 'About Us',
+      slug: 'about-us',
+      content: '<h1>About Us</h1><p>Welcome to our store!</p>',
+      metaDescription: 'Learn more about us',
+      metaKeywords: 'about, store',
+      metaTitle: 'About Us - Store',
+      status: 'published',
+      type: 'standard',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      desktopBanners: [],
+      mobileBanners: []
+    },
+    {
+      id: '2',
+      name: 'Contact Us',
+      slug: 'contact-us',
+      content: '<h1>Contact Us</h1><p>Get in touch with us.</p>',
+      metaDescription: 'Contact our store',
+      status: 'published',
+      type: 'standard',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      desktopBanners: [],
+      mobileBanners: []
+    }
+  ]
 
   /**
    * Get the singleton instance
+   * 
+   * @returns {PageService} The singleton instance of PageService
    */
-  /**
- * Get the singleton instance
- * 
- * @returns {PageService} The singleton instance of PageService
- */
   static getInstance(): PageService {
     if (!PageService.instance) {
       PageService.instance = new PageService()
     }
     return PageService.instance
   }
+
   /**
- * Fetches Page from the API
- * 
- * @param {Object} options - The request options
- * @param {number} [options.page=1] - The page number for pagination
- * @param {string} [options.q=''] - Search query string
- * @param {string} [options.sort='-createdAt'] - Sort order
- * @returns {Promise<any>} The requested data
- * @api {get} /api/page Get page
- * 
- * @example
- * // Example usage
- * const result = await pageService.list({ page: 1 });
- */
-  async list({ page = 1, search = '', sort = '-createdAt' }) {
-    return this.get<Page[]>(
-      `/api/pages?page=${page}&search=${search}&sort=${sort}`
-    )
+   * Fetches Page from the API
+   * 
+   * @param {Object} options - The request options
+   * @param {number} [options.page=1] - The page number for pagination
+   * @param {string} [options.search=''] - Search query string
+   * @param {string} [options.sort='-createdAt'] - Sort order
+   * @returns {Promise<Page[]>} The requested data
+   */
+  async list({ page = 1, search = '', sort = '-createdAt' }: any = {}): Promise<Page[]> {
+    return this.dummyPages;
   }
 
   /**
- * Fetches Page from the API
- * 
- * @param {Object} options - The request options
- * @param {number} [options.page=1] - The page number for pagination
- * @param {string} [options.q=''] - Search query string
- * @param {string} [options.sort='-createdAt'] - Sort order
- * @returns {Promise<any>} The requested data
- * @api {get} /api/page Get page
- * 
- * @example
- * // Example usage
- * const result = await pageService.listLatestPages({ page: 1 });
- */
-
-  async listLatestPages({}) {
-    return this.get<PaginatedResponse<Page>>(
-      '/api/pages?sort=-updatedAt&limit=10'
-    )
+   * Fetches latest Pages from the API
+   * 
+   * @returns {Promise<PaginatedResponse<Page>>} The requested data
+   */
+  async listLatestPages({}: any = {}): Promise<PaginatedResponse<Page>> {
+    return {
+      data: this.dummyPages,
+      count: this.dummyPages.length,
+      pageSize: 10,
+      noOfPage: 1,
+      page: 1
+    }
   }
 
   /**
- * Fetches a single Page by ID
- * 
- * @param {string} id - The ID of the page to fetch
- * @returns {Promise<any>} The requested page
- * @api {get} /api/page/:id Get page by ID
- * 
- * @example
- * // Example usage
- * const page = await pageService.getOne('123');
- */
-
-  async getOne(id: string) {
-    return this.get<Page>(`/api/pages/${id}`)
+   * Fetches a single Page by ID
+   * 
+   * @param {string} id - The ID of the page to fetch
+   * @returns {Promise<Page>} The requested page
+   */
+  async getOne(id: string): Promise<Page> {
+    const page = this.dummyPages.find(p => p.id === id)
+    if (!page) {
+      throw new Error(`Page with ID ${id} not found`)
+    }
+    return page
   }
 }
 
