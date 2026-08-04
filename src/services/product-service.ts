@@ -226,7 +226,7 @@ export class ProductService extends BaseService {
    * const featuredProducts = await productService.listFeaturedProducts({});
    */
   async listFeaturedProducts({ page = 1, sort = '-createdAt' }) {
-    return this.fetchProductsList(page, 'Featured', undefined) as unknown as Promise<PaginatedResponse<[Product]>>
+    return this.fetchProductsList(page, undefined, undefined) as unknown as Promise<PaginatedResponse<[Product]>>
   }
 
   /**
