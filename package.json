@@ -1,7 +1,7 @@
 {
   "name": "@misiki/saleor-connector",
   "version": "1.0.2",
-  "description": "API Connector for Saleor",
+  "description": "API Connector for Saleor with Svelte Commerce",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -31,7 +31,19 @@
     "p": "tsup && npm publish --access public",
     "dev": "tsup --watch"
   },
-  "keywords": [],
+  "keywords": [
+    "saleor",
+    "litekart",
+    "connector",
+    "ecommerce",
+    "headless",
+    "graphql",
+    "storefront",
+    "api",
+    "integration",
+    "typescript",
+    "svelte"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
