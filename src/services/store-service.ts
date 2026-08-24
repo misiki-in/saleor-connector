@@ -1,4 +1,5 @@
 import { BaseService } from './base.service'
+import { readStaticStore } from './static-store'
 
 /**
  * Interface representing the store details returned by the API
@@ -44,8 +45,7 @@ export interface GetStoreParams {
 }
 
 /**
- * StoreService provides functionality for retrieving store information
- * in the Litekart platform.
+ * StoreService provides functionality for retrieving store information.
  *
  * This service helps with:
  * - Retrieving store details by ID or domain
@@ -89,6 +89,11 @@ export class StoreService extends BaseService {
     storeId,
     domain
   }: GetStoreParams): Promise<StoreDetails> {
+    // Saleor has no store record of its own; when the storefront has registered one,
+    // that is the authoritative answer and no HTTP call is made.
+    const staticStore = await readStaticStore()
+    if (staticStore) return staticStore as unknown as StoreDetails
+
     if (!storeId && !domain) {
       throw new Error('Either storeId or domain must be provided')
     }

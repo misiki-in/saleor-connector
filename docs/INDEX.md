@@ -1,6 +1,6 @@
-# LiteKart Connector Documentation Index
+# Saleor Connector Documentation Index
 
-Welcome! This directory contains comprehensive documentation for the LiteKart Connector SDK.
+Welcome! This directory contains comprehensive documentation for the Saleor Connector SDK.
 
 ## Getting Started
 
@@ -90,10 +90,10 @@ Welcome! This directory contains comprehensive documentation for the LiteKart Co
 
 ## Need Help?
 
-- **Issues**: https://github.com/misiki/litekart-connector/issues
-- **Documentation**: https://litekart.in/docs/connector
-- **Discord**: https://discord.gg/litekart
-- **Email**: support@litekart.in
+- **Issues**: https://github.com/misiki-in/saleor-connector/issues
+- **Documentation**: https://github.com/misiki-in/saleor-connector#readme
+- **Discord**: https://github.com/misiki-in/saleor-connector/discussions
+- **Email**: https://github.com/misiki-in/saleor-connector/issues
 
 ---
 

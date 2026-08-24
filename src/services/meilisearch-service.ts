@@ -126,12 +126,9 @@ export class MeilisearchService extends BaseService {
   async searchAutoComplete(params: {
     query: string
   }): Promise<MeilisearchResponse> {
-    const { query } = params
-    const searchParams = new URLSearchParams()
-    searchParams.append('search', query)
-    return this.get<MeilisearchResponse>(
-      `/api/ms-autocomplete/products?${searchParams?.toString()}`
-    )
+    // `/api/ms-autocomplete/*` is the storefront REST API's Meilisearch proxy; Saleor has none. The
+    // search renderer reads `res.data`, so an empty list is the honest answer.
+    return { data: [] } as any
   }
 }
 

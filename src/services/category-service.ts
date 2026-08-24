@@ -100,8 +100,7 @@ function mapSaleorCategory(node: any, parentId: string | null = null): Category 
 }
 
 /**
- * CategoryService provides functionality for working with specific resources
- * in the Litekart API.
+ * CategoryService provides functionality for working with specific resources.
  *
  * This service helps with:
  * - Main functionality point 1
@@ -110,6 +109,19 @@ function mapSaleorCategory(node: any, parentId: string | null = null): Category 
  */
 export class CategoryService extends BaseService {
   private static instance: CategoryService
+
+  /**
+   * `use-category-filters` in @misiki/kitcommerce-core fetches the category tree by raw REST
+   * path rather than a typed method — `categoryService.get('/api/categories/all')`. That URL does not
+   * resolve on a Saleor store, so route this one path to the native category query; `fetchAllCategories`
+   * already returns the `{ data }` shape it reads.
+   */
+  async get<T>(url: string): Promise<T> {
+    if (typeof url === 'string' && url.startsWith('/api/categories/all')) {
+      return (await this.fetchAllCategories()) as unknown as T
+    }
+    return super.get<T>(url)
+  }
 
   /**
    * Get the singleton instance

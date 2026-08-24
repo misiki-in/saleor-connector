@@ -1,12 +1,12 @@
 # Payment Gateways Guide
 
-Comprehensive guide for implementing payment gateways with LiteKart Connector.
+Comprehensive guide for implementing payment gateways with Saleor Connector.
 
 ---
 
 ## Overview
 
-LiteKart supports multiple payment gateways out of the box. The `checkoutService` provides methods for:
+Saleor supports multiple payment gateways out of the box. The `checkoutService` provides methods for:
 
 - ✅ **Razorpay** - India's leading payment gateway
 - ✅ **Stripe** - Global credit card payments
@@ -73,7 +73,7 @@ interface PaymentResult {
 RAZORPAY_KEY_ID = 'rzp_live_xxxxxxxxxxxx'
 RAZORPAY_KEY_SECRET = 'xxxxxxxxxxxxxxxxxxxx'
 
-// 2. Configure in LiteKart backend
+// 2. Configure in the Saleor Dashboard
 // - Go to Admin → Payment Methods
 // - Enable Razorpay
 // - Enter Key ID and Key Secret
@@ -88,7 +88,7 @@ RAZORPAY_KEY_SECRET = 'xxxxxxxxxxxxxxxxxxxx'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { checkoutService } from '@misiki/litekart-connector'
+import { checkoutService } from '@misiki/saleor-connector'
 import Razorpay from 'razorpay'  // npm i razorpay
 
 export default function RazorpayCheckout() {
@@ -308,7 +308,7 @@ export async function POST(req: NextApiRequest, res: NextApiResponse) {
 ### Checkout Flow
 
 ```typescript
-import { checkoutService } from '@misiki/litekart-connector'
+import { checkoutService } from '@misiki/saleor-connector'
 
 async function initiatePhonePeCheckout(cartId: string) {
   try {

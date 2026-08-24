@@ -161,8 +161,7 @@ function mapSaleorProduct(node: any): Product {
 }
 
 /**
- * ProductService provides functionality for accessing and managing products
- * in the Litekart platform.
+ * ProductService provides functionality for accessing and managing products.
  *
  * This service helps with:
  * - Retrieving product listings with various filtering options

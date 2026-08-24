@@ -1,8 +1,7 @@
 import type { Page, PaginatedResponse } from './../types'
 
 /**
- * PageService provides functionality for working with specific resources
- * in the Litekart API.
+ * PageService provides functionality for working with specific resources.
  *
  * This service helps with:
  * - Main functionality point 1
@@ -90,11 +89,10 @@ export class PageService {
    * @returns {Promise<Page>} The requested page
    */
   async getOne(id: string): Promise<Page> {
-    const page = this.dummyPages.find(p => p.id === id)
-    if (!page) {
-      throw new Error(`Page with ID ${id} not found`)
-    }
-    return page
+    // An id this connector has no static page for resolves empty rather than throwing. The
+    // storefront asks for `home` on every visit, and a throw there is fatal to the whole page —
+    // the routes that read this already render their empty state for `{}`.
+    return (this.dummyPages.find((p) => p.id === id) ?? {}) as Page
   }
 }
 

@@ -1,10 +1,10 @@
 import type { Menu } from './../types'
+import { readStaticStore } from './static-store'
 
 import { BaseService } from './base.service'
 
 /**
- * MenuService provides functionality for working with specific resources
- * in the Litekart API.
+ * MenuService provides functionality for working with specific resources.
  *
  * This service helps with:
  * - Main functionality point 1
@@ -43,6 +43,11 @@ export class MenuService extends BaseService {
  * const result = await menuService.list({ page: 1 });
  */
   async list() {
+    // The nav reads `response.data` and filters on `menuId`; serve the menus recorded
+    // with the storefront's store identity rather than the storefront's `/api/menu`.
+    const staticStore = await readStaticStore()
+    if (staticStore) return { data: staticStore.menu ?? [] } as any
+
     return this.get<Menu[]>('/api/menu')
   }
 }

@@ -177,8 +177,7 @@ function handleErrors(errors?: any[]) {
 }
 
 /**
- * AuthService provides functionality for user authentication and profile management
- * in the Litekart platform.
+ * AuthService provides functionality for user authentication and profile management.
  *
  * This service helps with:
  * - User registration and login processes

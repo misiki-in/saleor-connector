@@ -1,13 +1,12 @@
-# JSDoc Templates for Litekart Connector
+# JSDoc Templates for Saleor Connector
 
-This document provides standardized JSDoc templates to use when documenting services and methods in the Litekart Connector package.
+This document provides standardized JSDoc templates to use when documenting services and methods in the Saleor Connector package.
 
 ## Service Class Documentation
 
 ```typescript
 /**
  * ServiceName provides functionality for working with specific resources
- * in the Litekart API.
  *
  * This service helps with:
  * - Main functionality point 1

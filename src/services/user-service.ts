@@ -177,8 +177,7 @@ function handleErrors(errors?: any[]) {
 }
 
 /**
- * UserService provides functionality for user account management
- * in the Litekart platform.
+ * UserService provides functionality for user account management.
  *
  * This service helps with:
  * - User authentication (registration, login, logout)

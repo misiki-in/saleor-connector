@@ -1,10 +1,10 @@
 import type { User } from './../types'
 
 import { BaseService } from './base.service'
+import { UserService } from './user-service'
 
 /**
- * ProfileService provides functionality for working with specific resources
- * in the Litekart API.
+ * ProfileService provides functionality for working with specific resources.
  *
  * This service helps with:
  * - Main functionality point 1
@@ -40,7 +40,9 @@ export class ProfileService extends BaseService {
  * const profile = await profileService.getOne('123');
  */
   async getOne() {
-    return this.get<User>('/api/users/me')
+    // Saleor-native: the UserService already implements the current-customer lookup. The REST
+    // path this used does not exist on a Saleor server.
+    return new UserService(this.getFetch()).getMe() as Promise<User>
   }
 
   /**
@@ -58,7 +60,8 @@ export class ProfileService extends BaseService {
  */
 
   async save(blog: Omit<User, 'id'>) {
-    return this.patch<User>('/api/users', blog)
+    // Saleor-native profile update; `updateProfile` wants an `id` its implementation never reads.
+    return new UserService(this.getFetch()).updateProfile({ id: '', ...blog } as any) as Promise<User>
   }
 }
 

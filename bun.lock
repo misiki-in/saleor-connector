@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "@misiki/litekart-connector",
+      "name": "@misiki/saleor-connector",
       "dependencies": {
         "graphql-request": "7.4.0",
       },

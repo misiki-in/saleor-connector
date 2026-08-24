@@ -1,8 +1,8 @@
 import { GraphQLClient, Variables } from 'graphql-request'
+import { isRestPath, resolveRestLocally } from './rest-guard'
 
 /**
- * BaseService provides core HTTP functionality for all service classes
- * in the Litekart API client.
+ * BaseService provides core HTTP functionality for all service classes in this connector.
  *
  * This service helps with:
  * - Performing standardized HTTP requests (GET, POST, PUT, PATCH, DELETE)
@@ -111,6 +111,7 @@ export class BaseService {
    * @throws {Error} Throws an error if the request fails
    */
   async get<T>(url: string): Promise<T> {
+    if (isRestPath(url)) return (await resolveRestLocally('get', url)) as any
     const response = await this.safeFetch(url)
 
     if (!response.ok) {
@@ -130,6 +131,7 @@ export class BaseService {
    * @throws {Error} Throws an error if the request fails
    */
   async post<T>(url: string, data: any): Promise<T> {
+    if (isRestPath(url)) return (await resolveRestLocally('post', url)) as any
     const response = await this.safeFetch(url, {
       method: 'POST',
       headers: {
@@ -155,6 +157,7 @@ export class BaseService {
    * @throws {Error} Throws an error if the request fails
    */
   async put<T>(url: string, data: any): Promise<T> {
+    if (isRestPath(url)) return (await resolveRestLocally('put', url)) as any
     const response = await this.safeFetch(url, {
       method: 'PUT',
       headers: {
@@ -180,6 +183,7 @@ export class BaseService {
    * @throws {Error} Throws an error if the request fails
    */
   async patch<T>(url: string, data: any): Promise<T> {
+    if (isRestPath(url)) return (await resolveRestLocally('patch', url)) as any
     const response = await this.safeFetch(url, {
       method: 'PATCH',
       headers: {
@@ -204,6 +208,7 @@ export class BaseService {
    * @throws {Error} Throws an error if the request fails
    */
   async delete<T>(url: string): Promise<T> {
+    if (isRestPath(url)) return (await resolveRestLocally('delete', url)) as any
     const response = await this.safeFetch(url, {
       method: 'DELETE'
     })

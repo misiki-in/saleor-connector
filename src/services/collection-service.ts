@@ -96,8 +96,7 @@ function mapSaleorCollection(node: any): Collection {
 }
 
 /**
- * CollectionService provides functionality for working with specific resources
- * in the Litekart API.
+ * CollectionService provides functionality for working with specific resources.
  *
  * This service helps with:
  * - Main functionality point 1

@@ -3,8 +3,7 @@ import type { PaginatedResponse, Wishlist } from './../types'
 import { BaseService } from './base.service'
 
 /**
- * WishlistService provides functionality for working with specific resources
- * in the Litekart API.
+ * WishlistService provides functionality for working with specific resources.
  *
  * This service helps with:
  * - Managing user wishlists
@@ -40,8 +39,9 @@ export class WishlistService extends BaseService {
    * // Example usage
    * const wishlist = await wishlistService.fetchWishlist({ page: 1 });
    */
-  async fetchWishlist({ q = '', sort = '', page = 1 }) {
-    return this.get<PaginatedResponse<Wishlist>>('/api/wishlists/me')
+  async fetchWishlist({ q = '', sort = '', page = 1 }) {
+    // No Saleor equivalent: wishlists are a storefront feature.
+    return { data: [], count: 0 } as any
   }
 
   /**
@@ -66,10 +66,9 @@ export class WishlistService extends BaseService {
   }: {
     productId: string
     variantId: string
-  }) {
-    return this.get<boolean>(
-      `/api/wishlists/me/check?productId=${productId}&variantId=${variantId}`
-    )
+  }) {
+    // No Saleor equivalent: wishlists are a storefront feature.
+    return false as any
   }
 
   /**
@@ -81,8 +80,9 @@ export class WishlistService extends BaseService {
    *   variantId: '456'
    * }]);
    */
-  async checkWishlistInBulk(ids: { productId: string, variantId: string }[]) {
-    return this.post<{ productId: string, variantId: string, exists: boolean }[]>('/api/wishlists/me/bulk-check', ids)
+  async checkWishlistInBulk(ids: { productId: string, variantId: string }[]) {
+    // No Saleor equivalent: wishlists are a storefront feature.
+    return [] as any
   }
   /**
    * Toggles a product's presence in the user's wishlist
@@ -108,11 +108,9 @@ export class WishlistService extends BaseService {
   }: {
     productId: string
     variantId: string
-  }) {
-    return this.post<Wishlist>('/api/wishlists/me/toggle', {
-      productId,
-      variantId
-    })
+  }) {
+    // No Saleor equivalent: wishlists are a storefront feature.
+    throw new Error('Wishlist is not available on this store.')
   }
 }
 

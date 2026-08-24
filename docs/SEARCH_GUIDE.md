@@ -1,6 +1,6 @@
 # Search & Discovery Guide
 
-Complete guide to implementing search with LiteKart's Meilisearch integration.
+Complete guide to implementing search with the connector's Meilisearch integration.
 
 ---
 
@@ -23,13 +23,13 @@ Complete guide to implementing search with LiteKart's Meilisearch integration.
 
 ## Overview
 
-LiteKart uses **Meilisearch** for instant, typo-tolerant product search. The connector provides two main search services:
+This connector uses **Meilisearch** for instant, typo-tolerant product search. The connector provides two main search services:
 
 ### `searchService` - High-Level API
 Converts URL parameters, formats results, handles errors gracefully.
 
 ```typescript
-import { searchService } from '@misiki/litekart-connector'
+import { searchService } from '@misiki/saleor-connector'
 
 const results = await searchService.searchWithQuery('red shoes')
 ```
@@ -38,7 +38,7 @@ const results = await searchService.searchWithQuery('red shoes')
 Direct Meilisearch access for advanced use cases.
 
 ```typescript
-import { meilisearchService } from '@misiki/litekart-connector'
+import { meilisearchService } from '@misiki/saleor-connector'
 
 const results = await meilisearchService.search({
   query: 'shoes',
@@ -53,7 +53,7 @@ const results = await meilisearchService.search({
 
 ### Prerequisites
 
-1. **Meilisearch running** (separate from LiteKart)
+1. **Meilisearch running** (separate from Saleor)
 
 ```bash
 # Install Meilisearch
@@ -66,9 +66,9 @@ docker run -it --rm \
 # Or download from https://www.meilisearch.com/download
 ```
 
-2. **Configure LiteKart**
+2. **Configure Saleor**
 
-In your LiteKart admin panel:
+In your Saleor Dashboard:
 - Go to Settings → Search
 - Set Meilisearch host: `http://localhost:7700`
 - Set API key (if configured)
@@ -77,9 +77,9 @@ In your LiteKart admin panel:
 
 3. **Sync Data**
 
-Meilisearch needs a product index. This is handled by LiteKart admin:
+Meilisearch needs a product index. This is handled by the Saleor Dashboard:
 ```bash
-# From LiteKart backend
+# From the Saleor backend
 npm run sync:search
 # or trigger via admin panel → Settings → Search → Sync Now
 ```
@@ -374,7 +374,7 @@ const url = `/search?${params.toString()}`
 
 ### Attribute-Based Filtering
 
-Product attributes defined in LiteKart admin are filterable:
+Product attributes defined in the Saleor Dashboard are filterable:
 
 ```typescript
 // User selects color=red, size=M
@@ -545,7 +545,7 @@ const settings = {
 ### Boosting Relevance
 
 ```javascript
-// In your LiteKart backend (Node.js)
+// In your indexing service (Node.js)
 
 // Sync products with boosted fields
 const productDocs = products.map(product => ({
@@ -571,7 +571,7 @@ const productDocs = products.map(product => ({
 ### Basic Autocomplete
 
 ```typescript
-import { meilisearchService } from '@misiki/litekart-connector'
+import { meilisearchService } from '@misiki/saleor-connector'
 
 async function getSuggestions(query) {
   if (!query || query.length < 2) {
@@ -695,7 +695,7 @@ async function smartSearch(query) {
 
 ```typescript
 // Track popular searches
-import { popularityService } from '@misiki/litekart-connector'
+import { popularityService } from '@misiki/saleor-connector'
 
 async function trackSearch(query, resultCount, userId) {
   await popularityService.trackSearch({

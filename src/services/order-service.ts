@@ -84,7 +84,7 @@ const ORDER_BY_ID = `
   }
 `;
 
-const mapSaleorOrderToLitekart = (saleorOrder: any): Order => {
+const mapSaleorOrder = (saleorOrder: any): Order => {
   return {
     id: saleorOrder.id,
     orderNo: saleorOrder.number,
@@ -143,8 +143,7 @@ const mapSaleorOrderToLitekart = (saleorOrder: any): Order => {
 };
 
 /**
- * OrderService provides functionality for working with specific resources
- * in the Litekart API.
+ * OrderService provides functionality for working with specific resources.
  */
 export class OrderService extends BaseService {
   private static instance: OrderService
@@ -158,7 +157,7 @@ export class OrderService extends BaseService {
 
   async list({ page = 1, q = '', sort = '-createdAt' }) {
     const res = await this.query<any>(ORDERS_LIST, { first: 50 });
-    const orders = res?.me?.orders?.edges?.map((e: any) => mapSaleorOrderToLitekart(e.node)) || [];
+    const orders = res?.me?.orders?.edges?.map((e: any) => mapSaleorOrder(e.node)) || [];
     return {
       data: orders,
       count: res?.me?.orders?.totalCount || orders.length,
@@ -171,7 +170,7 @@ export class OrderService extends BaseService {
 
   async listOrdersByParent({ orderNo, cartId }: { orderNo: string | null; cartId: string | null }) {
     const res = await this.query<any>(ORDERS_LIST, { first: 50 });
-    let orders = res?.me?.orders?.edges?.map((e: any) => mapSaleorOrderToLitekart(e.node)) || [];
+    let orders = res?.me?.orders?.edges?.map((e: any) => mapSaleorOrder(e.node)) || [];
 
     if (orderNo) {
       orders = orders.filter((o: Order) => o.id === orderNo || String(o.orderNo) === orderNo);
@@ -190,13 +189,13 @@ export class OrderService extends BaseService {
   async fetchOrder(id: string) {
     const res = await this.query<any>(ORDER_BY_ID, { id });
     if (!res?.order) throw new Error("Order not found");
-    return mapSaleorOrderToLitekart(res.order);
+    return mapSaleorOrder(res.order);
   }
 
   async getOrder(orderNo: string) {
     const res = await this.query<any>(ORDER_BY_ID, { id: orderNo });
     if (!res?.order) throw new Error("Order not found");
-    return mapSaleorOrderToLitekart(res.order);
+    return mapSaleorOrder(res.order);
   }
 
   async fetchTrackOrder(id: string) {

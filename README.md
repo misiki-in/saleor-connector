@@ -6,7 +6,7 @@
 
 **The Official TypeScript API Connector for connecting `svelte-commerce` to Saleor E-Commerce Backend.**
 
-`@misiki/saleor-connector` provides a production-ready, fully-typed API client and integration layer that seamlessly bridges [svelte-commerce](https://github.com/misiki-in/svelte-commerce) storefronts with [Saleor](https://saleor.io) headless e-commerce backends — part of the [Litekart](https://litekart.in) connector suite, mirroring the full 43-service surface of [`@misiki/litekart-connector`](https://github.com/misiki-in/litekart-connector).
+`@misiki/saleor-connector` provides a production-ready, fully-typed API client and integration layer that seamlessly bridges [svelte-commerce](https://github.com/misiki-in/svelte-commerce) storefronts with [Saleor](https://saleor.io) headless e-commerce backends — mirroring the full 43-service surface `svelte-commerce` expects.
 
 > **Coverage:** 40 of 43 services are wired to the live Saleor API.
 > The remaining 3 have no Saleor equivalent and return empty placeholder

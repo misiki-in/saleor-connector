@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get up and running with LiteKart Connector in 15 minutes!
+Get up and running with Saleor Connector in 15 minutes!
 
 ---
 
@@ -8,7 +8,7 @@ Get up and running with LiteKart Connector in 15 minutes!
 
 - Node.js 18+
 - npm/yarn/pnpm/bun
-- A LiteKart backend instance
+- A Saleor backend instance
 - Basic TypeScript/JavaScript knowledge
 
 ---
@@ -16,7 +16,7 @@ Get up and running with LiteKart Connector in 15 minutes!
 ## Step 1: Installation
 
 ```bash
-npm install @misiki/litekart-connector
+npm install @misiki/saleor-connector
 ```
 
 ---
@@ -30,7 +30,7 @@ import {
   productService,
   cartService,
   authService
-} from '@misiki/litekart-connector'
+} from '@misiki/saleor-connector'
 
 // That's it! Services are ready to use
 ```
@@ -164,7 +164,7 @@ async function searchProducts(query) {
 'use client'
 
 import { useEffect, useState } from 'react'
-import { productService, cartService, wishlistService } from '@misiki/litekart-connector'
+import { productService, cartService, wishlistService } from '@misiki/saleor-connector'
 
 export default function ProductPage({ params }) {
   const [product, setProduct] = useState(null)
@@ -337,7 +337,7 @@ export default async function CartPage() {
 'use client'
 
 import { useState } from 'react'
-import { authService } from '@misiki/litekart-connector'
+import { authService } from '@misiki/saleor-connector'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -605,7 +605,7 @@ export default async function OrdersPage() {
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { searchService } from '@misiki/litekart-connector'
+import { searchService } from '@misiki/saleor-connector'
 
 export default function SearchPage() {
   const router = useRouter()
@@ -713,7 +713,7 @@ export default function SearchPage() {
 
 ```typescript
 // Server-side data fetching (Next.js App Router)
-import { productService } from '@misiki/litekart-connector'
+import { productService } from '@misiki/saleor-connector'
 
 export default async function ProductListPage() {
   // Direct await in server component
@@ -737,7 +737,7 @@ export default async function ProductListPage() {
 
 ```typescript
 import useSWR from 'swr'
-import { productService } from '@misiki/litekart-connector'
+import { productService } from '@misiki/saleor-connector'
 
 function useProducts(params) {
   const { data, error, mutate } = useSWR(
@@ -771,11 +771,11 @@ function useProducts(params) {
 
 ## Troubleshooting
 
-### "Cannot find module '@misiki/litekart-connector'"
+### "Cannot find module '@misiki/saleor-connector'"
 
 Make sure you've installed the package:
 ```bash
-npm install @misiki/litekart-connector
+npm install @misiki/saleor-connector
 ```
 
 ### TypeScript errors
@@ -792,16 +792,16 @@ User session has expired. Redirect to login page or re-authenticate.
 
 ### CORS errors in development
 
-Configure your LiteKart backend to allow your development origin, or use a proxy.
+Configure your Saleor backend to allow your development origin, or use a proxy.
 
 ---
 
 ## Need More Help?
 
 - **[Full Documentation](./API_REFERENCE.md)** - All methods and parameters
-- **[GitHub Issues](https://github.com/misiki/litekart-connector/issues)** - Report bugs or request features
-- **[Discord](https://discord.gg/litekart)** - Get help from the community
-- **[litekart.in](https://litekart.in)** - LiteKart platform documentation
+- **[GitHub Issues](https://github.com/misiki-in/saleor-connector/issues)** - Report bugs or request features
+- **[Discord](https://github.com/misiki-in/saleor-connector/discussions)** - Get help from the community
+- **[docs.saleor.io](https://docs.saleor.io)** - Saleor platform documentation
 
 ---
 

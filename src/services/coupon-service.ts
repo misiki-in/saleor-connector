@@ -3,8 +3,7 @@ import type { Coupon, PaginatedResponse } from './../types'
 import { BaseService } from './base.service'
 
 /**
- * CouponService provides functionality for working with specific resources
- * in the Litekart API.
+ * CouponService provides functionality for working with specific resources.
  *
  * This service helps with:
  * - Main functionality point 1
@@ -13,27 +12,6 @@ import { BaseService } from './base.service'
  */
 export class CouponService extends BaseService {
   private static instance: CouponService
-
-  private dummyCoupons: Coupon[] = [
-    {
-      id: '1',
-      code: 'SUMMER20',
-      amount: 20,
-      type: 'TOTAL',
-      maxAmount: 100,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '2',
-      code: 'WELCOME10',
-      amount: 10,
-      type: 'USER',
-      maxAmount: 50,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  ]
 
   /**
    * Get the singleton instance
@@ -57,24 +35,15 @@ export class CouponService extends BaseService {
    * @returns {Promise<any>} The requested data
    * @api {get} /api/coupon Get coupon
    */
+  // Saleor applies a voucher code to the checkout, but publishes no list of codes to a shopper.
+  // Inventing one would offer codes the store will reject at the cart, so both list surfaces
+  // resolve empty and the coupon drawer renders its empty state.
   async listCoupons({ page = 1, q = '', sort = '-createdAt' }: any = {}): Promise<PaginatedResponse<Coupon>> {
-    return {
-      data: this.dummyCoupons,
-      count: this.dummyCoupons.length,
-      pageSize: 10,
-      noOfPage: 1,
-      page: page
-    }
+    return { data: [], count: 0, pageSize: 10, noOfPage: 1, page } as PaginatedResponse<Coupon>
   }
 
   async searchCoupons({ page = 1, q = '', sort = '-createdAt' }: any = {}): Promise<PaginatedResponse<Coupon>> {
-    return {
-      data: this.dummyCoupons,
-      count: this.dummyCoupons.length,
-      pageSize: 10,
-      noOfPage: 1,
-      page: page
-    }
+    return { data: [], count: 0, pageSize: 10, noOfPage: 1, page } as PaginatedResponse<Coupon>
   }
 
   /**
@@ -84,53 +53,30 @@ export class CouponService extends BaseService {
    * @returns {Promise<any>} The requested coupon
    * @api {get} /api/coupon/:id Get coupon by ID
    */
+  // A voucher record is admin data on Saleor; a shopper only ever applies a code to their
+  // checkout. Reading or writing one from the storefront fails loudly rather than mutating an
+  // in-memory list that no Saleor server ever sees.
   async getCoupon(id: string): Promise<Coupon> {
-    const coupon = this.dummyCoupons.find(c => c.id === id)
-    if (!coupon) {
-      throw new Error(`Coupon with ID ${id} not found`)
-    }
-    return coupon
+    throw new Error('Coupons cannot be read individually on this store.')
   }
 
   /**
    * Creates a new Coupon
-   * 
+   *
    * @param {any} data - The data to create
    * @returns {Promise<any>} The created coupon
    * @api {post} /api/coupon Create coupon
    */
   async createCoupon(coupons: Omit<Coupon, 'id'>): Promise<Coupon> {
-    const newCoupon: Coupon = {
-      ...coupons,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-    this.dummyCoupons.push(newCoupon)
-    return newCoupon
+    throw new Error('Coupons are managed in the Saleor dashboard, not from the storefront.')
   }
 
   async patchCoupon(id: string, coupons: Partial<Coupon>): Promise<Coupon> {
-    const index = this.dummyCoupons.findIndex(c => c.id === id)
-    if (index === -1) {
-      throw new Error(`Coupon with ID ${id} not found`)
-    }
-    const updatedCoupon = {
-      ...this.dummyCoupons[index],
-      ...coupons,
-      updatedAt: new Date().toISOString()
-    }
-    this.dummyCoupons[index] = updatedCoupon
-    return updatedCoupon
+    throw new Error('Coupons are managed in the Saleor dashboard, not from the storefront.')
   }
 
   async deleteCoupon(id: string): Promise<Coupon> {
-    const index = this.dummyCoupons.findIndex(c => c.id === id)
-    if (index === -1) {
-      throw new Error(`Coupon with ID ${id} not found`)
-    }
-    const [deletedCoupon] = this.dummyCoupons.splice(index, 1)
-    return deletedCoupon
+    throw new Error('Coupons are managed in the Saleor dashboard, not from the storefront.')
   }
 }
 

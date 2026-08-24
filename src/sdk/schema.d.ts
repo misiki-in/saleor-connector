@@ -20,7 +20,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Litekart v2.0 API Index */
+                /** @description Storefront v2.0 API Index */
                 200: {
                     headers: {
                         [name: string]: unknown;

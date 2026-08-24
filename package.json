@@ -1,6 +1,6 @@
 {
   "name": "@misiki/saleor-connector",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "API Connector for Saleor with Svelte Commerce",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -33,7 +33,6 @@
   },
   "keywords": [
     "saleor",
-    "litekart",
     "connector",
     "ecommerce",
     "headless",

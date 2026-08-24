@@ -194,7 +194,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full API coverage
 - Comprehensive documentation
 
-[Documentation](https://litekart.in/docs/connector)
+[Documentation](https://github.com/misiki-in/saleor-connector#readme)
 
 ---
 
@@ -216,7 +216,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 1. Replace direct service instantiation with singleton imports:
    ```diff
 - const productService = new ProductService()
-+ import { productService } from '@misiki/litekart-connector'
++ import { productService } from '@misiki/saleor-connector'
    ```
 
 2. Handle paginated responses properly:
